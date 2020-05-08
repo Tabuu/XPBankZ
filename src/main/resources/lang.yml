@@ -1,0 +1,8 @@
+COMMAND_BALANCE: |-
+  &9Balance: [&a&l{BALANCE_POINTS}](&9When withdrawing:
+  &9At current level: &a&l+{BALANCE_LEVEL_YIELD} &9levels.
+  &9At level 0: &a&l+{BALANCE_LEVEL} &9levels.)&9 experience points.
+  &9Current: &a&l{CURRENT_POINTS}&9 experience points.
+
+COMMAND_BALANCE_EDIT: "&aSuccessfully set balance of {PLAYER} to {BALANCE_POINTS}"
+COMMAND_BALANCE_EDIT_ERROR: "&cCould not set balance of {PLAYER} to {BALANCE_POINTS}"

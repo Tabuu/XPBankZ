@@ -1,0 +1,79 @@
+name: XPBankZ
+version: ${project.version}
+main: nl.tabuu.xpbankz.XPBankZ
+description: ${project.description}
+author: Tabuu
+authors: [Tabuu]
+website: https://www.tabuu.nl
+depend: [TabuuCore]
+api-version: 1.13
+
+commands:
+
+  xpbank:
+    usage: /xpbank
+    description: Does the same as `/xp balalance`
+    permission: xpbankz.balance.view
+    aliases: [xp, xpb]
+
+  xpbank balance:
+    usage: /xpbank balance
+    description: Shows a user their xp-bank balance balance, and current xp.
+    permission: xpbankz.balance.view
+    aliases: [balance]
+
+  xpbank deposit:
+    usage: /xpbank deposit <amount>
+    description: Deposits a specific amount of current xp to the users xp-bank balance.
+    permission: xpbank.balance.deposit
+    aliases: [deposit]
+    
+  xpbank withdraw:
+    usage: /xpbank withdraw <amount>
+    description: Withdraws a specific amount of the users xp-bank balance to their current xp.
+    permission: xpbank.balance.withdraw
+    aliases: [withdraw]
+
+  xpbank transfer:
+    usage: /xpbank transfer <player> <amount>
+    description: Transfers a specific amount to a specific player's xp-bank balance.
+    permission: xpbank.balance.transfer
+    aliases: [transfer]
+
+  xpbank set:
+    usage: /xpbank set <player> <amount>
+    description: Sets a specific player's xp-bank balance.
+    permission: xpbank.admin.set
+
+  xpbank give:
+    usage: /xpbank give <player> <amount>
+    description: Gives a specific amount to a specific player's xp-bank balance.
+    permission: xpbank.admin.set
+
+  xpbank take:
+    usage: /xpbank take <player> <amount>
+    description: Takes a specific amount from a specific player's xp-bank balance.
+    permission: xpbank.admin.set
+
+
+permissions:
+
+  xpbank.balance.view:
+    description: Allows users to view their own xp balance.
+    default: true
+
+  xpbank.balance.deposit:
+    description: Allows users to deposit their own xp into their own xp bank.
+    default: true
+
+  xpbank.balance.withdraw:
+    description: Allows users to withdraw xp from their own xp bank.
+    default: true
+
+  xpbank.balance.transfer:
+    description: Allows users to tranfser xp from their own xp bank to another's xp bank.
+    default: true
+
+  xpbank.admin.set:
+    description: Allows users to set the xp-bank balance of any player.
+    default: op
