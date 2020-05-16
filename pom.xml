@@ -6,7 +6,7 @@
 
     <groupId>nl.tabuu</groupId>
     <artifactId>XPBankZ</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <description>A safe way to store xp points.</description>
 
     <build>

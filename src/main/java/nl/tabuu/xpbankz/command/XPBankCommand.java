@@ -10,9 +10,7 @@ import nl.tabuu.tabuucore.text.ComponentBuilder;
 import nl.tabuu.tabuucore.util.Dictionary;
 import nl.tabuu.xpbankz.XPBankZ;
 import nl.tabuu.xpbankz.bank.Bank;
-import nl.tabuu.xpbankz.events.XPBankBalanceChangeEvent;
 import nl.tabuu.xpbankz.util.ExperienceUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -32,12 +30,12 @@ public class XPBankCommand extends Command {
         _local = XPBankZ.getInstance().getLocal();
 
         addSubCommand("balance", new XPBankBalanceCommand(this));
-        addSubCommand("deposit", new XPBankBalanceDeposit(this));
-        addSubCommand("withdraw", new XPBankBalanceWithdraw(this));
-        addSubCommand("transfer", new XPBankBalanceTransfer(this));
-        addSubCommand("set", new XPBankBalanceSetCommand(this));
-        addSubCommand("give", new XPBankBalanceGiveCommand(this));
-        addSubCommand("take", new XPBankBalanceTakeCommand(this));
+        addSubCommand("deposit", new XPBankDepositCommand(this));
+        addSubCommand("withdraw", new XPBankWithdrawCommand(this));
+        addSubCommand("transfer", new XPBankTransferCommand(this));
+        addSubCommand("set", new XPBankSetCommand(this));
+        addSubCommand("give", new XPBankGiveCommand(this));
+        addSubCommand("take", new XPBankTakeCommand(this));
     }
 
     @Override
@@ -81,9 +79,9 @@ public class XPBankCommand extends Command {
         }
     }
 
-    class XPBankBalanceDeposit extends Command {
+    class XPBankDepositCommand extends XPBankEditSelfCommand {
 
-        protected XPBankBalanceDeposit(Command parent) {
+        protected XPBankDepositCommand(Command parent) {
             super("xpbank deposit", parent);
 
             setRequiredSenderType(SenderType.PLAYER);
@@ -93,101 +91,107 @@ public class XPBankCommand extends Command {
         }
 
         @Override
-        protected CommandResult onCommand(CommandSender sender, List<Optional<?>> arguments) {
-            if (!arguments.stream().allMatch(Optional::isPresent)) return CommandResult.WRONG_SYNTAX;
-
-            Player player = (Player) sender;
-            long amount = (Long) arguments.get(0).get();
-
-            String message = "COMMAND_DEPOSIT_ERROR";
-            if(_bank.deposit(player, amount)) {
-                long points = ExperienceUtil.getPoints(player);
-                points -= amount;
-
-                if(points > 0) {
-                    ExperienceUtil.setPoints(player, (int) points);
-                    message = "COMMAND_DEPOSIT";
-                }
-            }
-
-            message = _local.translate(message, "{AMOUNT}", String.format("%s", amount));
-            player.spigot().sendMessage(ComponentBuilder.parse(message).build());
-
-            return CommandResult.SUCCESS;
-        }
-    }
-
-    class XPBankBalanceWithdraw extends Command {
-
-        protected XPBankBalanceWithdraw(Command parent) {
-            super("xpbank withdraw", parent);
-
-            setRequiredSenderType(SenderType.PLAYER);
-
-            ArgumentConverter converter = new OrderedArgumentConverter().setSequence(ArgumentType.LONG);
-            setArgumentConverter(converter);
+        protected BalanceManipulator getBalanceManipulator() {
+            return Long::sum;
         }
 
         @Override
-        protected CommandResult onCommand(CommandSender sender, List<Optional<?>> arguments) {
-            if (!arguments.stream().allMatch(Optional::isPresent)) return CommandResult.WRONG_SYNTAX;
+        protected boolean onPreBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) {
+            return ExperienceUtil.getPoints((Player) sender) >= delta;
+        }
 
+        @Override
+        protected void onPostBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) {
             Player player = (Player) sender;
-            long amount = (Long) arguments.get(0).get();
+            int points = ExperienceUtil.getPoints(player);
+            points -= delta;
+            ExperienceUtil.setPoints(player, points);
+        }
 
-            String message = "COMMAND_WITHDRAW_ERROR";
-            if(_bank.withdraw(player, amount)) {
-                long points = ExperienceUtil.getPoints(player);
-                points += amount;
+        @Override
+        protected String getLocalizedSuccessMessage() {
+            return "COMMAND_DEPOSIT";
+        }
 
-                if(points <= Integer.MAX_VALUE) {
-                    ExperienceUtil.setPoints(player, (int) points);
-                    message = "COMMAND_WITHDRAW";
-                }
-            }
-
-            message = _local.translate(message, "{AMOUNT}", String.format("%s", amount));
-            player.spigot().sendMessage(ComponentBuilder.parse(message).build());
-
-            return CommandResult.SUCCESS;
+        @Override
+        protected String getLocalizedErrorMessage() {
+            return "COMMAND_DEPOSIT_ERROR";
         }
     }
 
-    class XPBankBalanceTransfer extends Command {
+    class XPBankWithdrawCommand extends XPBankEditSelfCommand {
 
-        protected XPBankBalanceTransfer(Command parent) {
+        protected XPBankWithdrawCommand(Command parent) {
+            super("xpbank withdraw", parent);
+        }
+
+        @Override
+        protected BalanceManipulator getBalanceManipulator() {
+            return (balance, delta) -> balance - delta;
+        }
+
+        @Override
+        protected void onPostBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) {
+            Player player = (Player) sender;
+            int points = ExperienceUtil.getPoints(player);
+            points += delta;
+            ExperienceUtil.setPoints(player, points);
+        }
+
+        @Override
+        protected String getLocalizedSuccessMessage() {
+            return "COMMAND_WITHDRAW";
+        }
+
+        @Override
+        protected String getLocalizedErrorMessage() {
+            return "COMMAND_WITHDRAW_ERROR";
+        }
+    }
+
+    class XPBankTransferCommand extends XPBankGiveCommand {
+
+        protected XPBankTransferCommand(Command parent) {
             super("xpbank transfer", parent);
 
             setRequiredSenderType(SenderType.PLAYER);
-
-            ArgumentConverter converter = new OrderedArgumentConverter().setSequence(ArgumentType.OFFLINE_PLAYER, ArgumentType.LONG);
-            setArgumentConverter(converter);
         }
 
         @Override
-        protected CommandResult onCommand(CommandSender sender, List<Optional<?>> arguments) {
-            if (!arguments.stream().allMatch(Optional::isPresent)) return CommandResult.WRONG_SYNTAX;
-
+        protected boolean onPreBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) {
             Player player = (Player) sender;
-            OfflinePlayer receiver = (OfflinePlayer) arguments.get(0).get();
-            long amount = (Long) arguments.get(1).get();
+            return _bank.has(player, delta);
+        }
 
-            String message = "COMMAND_TRANSFER_ERROR";
-            if(_bank.has(player, amount) && _bank.deposit(receiver, amount)) {
-                _bank.withdraw(player, amount);
-                message = "COMMAND_TRANSFER";
+        @Override
+        protected void onPostBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) {
+            Player player = (Player) sender;
+            _bank.withdraw(player, delta);
+
+            if(target.isOnline()) {
+                String message = "COMMAND_TRANSFER_RECEIVED";
+                sendMessage((Player) target, message, oldBalance, oldBalance + delta, delta, target);
             }
+        }
 
-            message = _local.translate(message, "{AMOUNT}", String.format("%s", amount), "{PLAYER}", receiver.getName());
-            player.spigot().sendMessage(ComponentBuilder.parse(message).build());
+        @Override
+        protected String getLocalizedErrorMessage() {
+            return "COMMAND_TRANSFER_ERROR";
+        }
 
-            return CommandResult.SUCCESS;
+        @Override
+        protected String getLocalizedSuccessMessage() {
+            return "COMMAND_TRANSFER";
         }
     }
 
-    class XPBankBalanceSetCommand extends XPBankBalanceEditCommand {
+    class XPBankSetCommand extends XPBankEditOtherCommand {
 
-        protected XPBankBalanceSetCommand(Command parent) {
+        protected XPBankSetCommand(String name, Command parent) {
+            super(name, parent);
+        }
+
+        protected XPBankSetCommand(Command parent) {
             super("xpbank set", parent);
         }
 
@@ -197,9 +201,13 @@ public class XPBankCommand extends Command {
         }
     }
 
-    class XPBankBalanceGiveCommand extends XPBankBalanceEditCommand {
+    class XPBankGiveCommand extends XPBankEditOtherCommand {
 
-        protected XPBankBalanceGiveCommand(Command parent) {
+        protected XPBankGiveCommand(String name, Command parent) {
+            super(name, parent);
+        }
+
+        protected XPBankGiveCommand(Command parent) {
             super("xpbank give", parent);
         }
 
@@ -209,9 +217,13 @@ public class XPBankCommand extends Command {
         }
     }
 
-    class XPBankBalanceTakeCommand extends XPBankBalanceEditCommand {
+    class XPBankTakeCommand extends XPBankEditOtherCommand {
 
-        protected XPBankBalanceTakeCommand(Command parent) {
+        protected XPBankTakeCommand(String name, Command parent) {
+            super(name, parent);
+        }
+
+        protected XPBankTakeCommand(Command parent) {
             super("xpbank take", parent);
         }
 
@@ -221,9 +233,58 @@ public class XPBankCommand extends Command {
         }
     }
 
-    abstract class XPBankBalanceEditCommand extends Command {
+    abstract class XPBankEditSelfCommand extends XPBankEditCommand {
 
-        protected XPBankBalanceEditCommand(String name, Command parent) {
+        protected XPBankEditSelfCommand(String name, Command parent) {
+            super(name, parent);
+
+            setRequiredSenderType(SenderType.PLAYER);
+            ArgumentConverter converter = new OrderedArgumentConverter().setSequence(ArgumentType.LONG);
+            setArgumentConverter(converter);
+        }
+
+        @Override
+        protected CommandResult onCommand(CommandSender sender, List<Optional<?>> arguments) {
+            if (!arguments.get(0).isPresent()) return CommandResult.WRONG_SYNTAX;
+
+            long delta = (Long) arguments.get(0).get();
+            OfflinePlayer target = (OfflinePlayer) sender;
+            long oldBalance = _bank.getBalance(target);
+
+            onBalanceEdit(sender, target, oldBalance, delta);
+
+            return CommandResult.SUCCESS;
+        }
+
+    }
+
+    abstract class XPBankEditOtherCommand extends XPBankEditCommand {
+
+        protected XPBankEditOtherCommand(String name, Command parent) {
+            super(name, parent);
+
+            ArgumentConverter converter = new OrderedArgumentConverter().setSequence(ArgumentType.OFFLINE_PLAYER, ArgumentType.LONG);
+            setArgumentConverter(converter);
+        }
+
+        @Override
+        protected CommandResult onCommand(CommandSender sender, List<Optional<?>> arguments) {
+            if (!arguments.stream().allMatch(Optional::isPresent)) return CommandResult.WRONG_SYNTAX;
+
+            OfflinePlayer target = (OfflinePlayer) arguments.get(0).get();
+            long delta = (Long) arguments.get(1).get();
+            long oldBalance = _bank.getBalance(target);
+
+            onBalanceEdit(sender, target, oldBalance, delta);
+
+            return CommandResult.SUCCESS;
+        }
+
+    }
+
+    abstract class XPBankEditCommand extends Command {
+
+        protected XPBankEditCommand(String name, Command parent) {
             super(name, parent);
 
             ArgumentConverter converter = new OrderedArgumentConverter().setSequence(ArgumentType.OFFLINE_PLAYER, ArgumentType.LONG);
@@ -232,27 +293,41 @@ public class XPBankCommand extends Command {
 
         protected abstract BalanceManipulator getBalanceManipulator();
 
-        @Override
-        protected CommandResult onCommand(CommandSender sender, List<Optional<?>> arguments) {
-            if (!arguments.stream().allMatch(Optional::isPresent)) return CommandResult.WRONG_SYNTAX;
+        protected boolean onPreBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) { return true; }
 
-            OfflinePlayer player = (OfflinePlayer) arguments.get(0).get();
-            long delta = (Long) arguments.get(1).get();
-            long oldBalance = _bank.getBalance(player);
+        protected void onPostBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) { }
+
+        protected boolean onBalanceEdit(CommandSender sender, OfflinePlayer target, long oldBalance, long delta) {
             long newBalance = getBalanceManipulator().manipulate(oldBalance, delta);
 
-            String message;
-            if (_bank.set(player, newBalance))
-                message = "COMMAND_BALANCE_EDIT";
-            else
-                message = "COMMAND_BALANCE_EDIT_ERROR";
+            boolean success = onPreBalanceEdit(sender, target, oldBalance, delta) && _bank.set(target, newBalance);
 
-            message = _local.translate(message,
-                    "{BALANCE_POINTS}", String.format("%s", oldBalance),
-                    "{PLAYER}", player.getName());
-            sender.spigot().sendMessage(ComponentBuilder.parse(message).build());
+            String message = success ? getLocalizedSuccessMessage() : getLocalizedErrorMessage();
+            sendMessage(sender, message, oldBalance, newBalance, delta, target);
 
-            return CommandResult.SUCCESS;
+            if(success) onPostBalanceEdit(sender, target, oldBalance, delta);
+
+            return success;
+        }
+
+        protected void sendMessage(CommandSender receiver, String localizedMessage, long oldBalance, long newBalance, long delta, OfflinePlayer player) {
+            String[] replacements = new String[] {
+                    "{BALANCE_OLD}", String.format("%s", oldBalance),
+                    "{BALANCE_NEW}", String.format("%s", newBalance),
+                    "{BALANCE_DELTA}", String.format("%s", delta),
+                    "{PLAYER_NAME}", player.getName()
+            };
+
+            String message = _local.translate(localizedMessage, replacements);
+            receiver.spigot().sendMessage(ComponentBuilder.parse(message).build());
+        }
+
+        protected String getLocalizedErrorMessage() {
+            return "COMMAND_BALANCE_EDIT_ERROR";
+        }
+
+        protected String getLocalizedSuccessMessage() {
+            return "COMMAND_BALANCE_EDIT";
         }
     }
 

@@ -1,13 +1,10 @@
 package nl.tabuu.xpbankz.bank;
 
 import nl.tabuu.tabuucore.configuration.IConfiguration;
-import nl.tabuu.tabuucore.debug.Debug;
 import nl.tabuu.tabuucore.serialization.string.Serializer;
 import nl.tabuu.xpbankz.events.XPBankBalanceChangeEvent;
-import nl.tabuu.xpbankz.util.ExperienceUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +38,7 @@ public class Bank {
     }
 
     public boolean canSet(OfflinePlayer player, long amount) {
-        return amount < getMaxBalance(player) && amount > 0;
+        return amount <= getMaxBalance(player) && amount >= 0;
     }
 
     public boolean set(OfflinePlayer player, long amount) {
@@ -66,6 +63,6 @@ public class Bank {
     }
 
     public boolean has(OfflinePlayer player, long amount) {
-        return getBalance(player) >= amount;
+        return getBalance(player) >= amount && amount >= 0;
     }
 }

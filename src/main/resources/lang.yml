@@ -2,7 +2,17 @@ COMMAND_BALANCE: |-
   &9Balance: [&a&l{BALANCE_POINTS}](&9When withdrawing:
   &9At current level: &a&l+{BALANCE_LEVEL_YIELD} &9levels.
   &9At level 0: &a&l+{BALANCE_LEVEL} &9levels.)&9 experience points.
-  &9Current: &a&l{CURRENT_POINTS}&9 experience points.
+  &9Current: [&a&l{CURRENT_POINTS}](&9Click to deposit)(suggest_command,/xpbank deposit {CURRENT_POINTS})&9 experience points.
 
 COMMAND_BALANCE_EDIT: "&aSuccessfully set balance of {PLAYER} to {BALANCE_POINTS}"
 COMMAND_BALANCE_EDIT_ERROR: "&cCould not set balance of {PLAYER} to {BALANCE_POINTS}"
+
+COMMAND_WITHDRAW_ERROR: "&cCould not withdraw."
+COMMAND_WITHDRAW: "&aSuccessfully withdrawn {BALANCE_DELTA}, your new balance is {BALANCE_NEW}."
+
+COMMAND_DEPOSIT_ERROR: "&cCould not deposit."
+COMMAND_DEPOSIT: "&aSuccessfully deposited {BALANCE_DELTA}, your new balance is {BALANCE_NEW}."
+
+COMMAND_TRANSFER_ERROR: "&cCould not transfer."
+COMMAND_TRANSFER: "&aSuccessfully transferred {BALANCE_DELTA} to {PLAYER_NAME}."
+COMMAND_TRANSFER_RECEIVED: "&aYou've received {BALANCE_DELTA} from {PLAYER_NAME}"
