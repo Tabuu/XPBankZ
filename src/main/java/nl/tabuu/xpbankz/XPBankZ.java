@@ -1,6 +1,8 @@
 package nl.tabuu.xpbankz;
 
 import nl.tabuu.tabuucore.configuration.IConfiguration;
+import nl.tabuu.tabuucore.configuration.file.JsonConfiguration;
+import nl.tabuu.tabuucore.configuration.file.YamlConfiguration;
 import nl.tabuu.tabuucore.plugin.TabuuCorePlugin;
 import nl.tabuu.tabuucore.util.Dictionary;
 import nl.tabuu.xpbankz.bank.Bank;
@@ -17,8 +19,8 @@ public class XPBankZ extends TabuuCorePlugin {
     public void onEnable() {
         INSTANCE = this;
 
-        _data = getConfigurationManager().addConfiguration("data");
-        _local = getConfigurationManager().addConfiguration("lang").getDictionary("");
+        _data = getConfigurationManager().addConfiguration("data.json", JsonConfiguration.class);
+        _local = getConfigurationManager().addConfiguration("lang.yml", YamlConfiguration.class).getDictionary("");
 
         _bank = new Bank();
         getBank().load(_data);

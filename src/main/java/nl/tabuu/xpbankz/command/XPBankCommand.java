@@ -29,13 +29,13 @@ public class XPBankCommand extends Command {
         _bank = XPBankZ.getInstance().getBank();
         _local = XPBankZ.getInstance().getLocal();
 
+        addSubCommand("set", new XPBankSetCommand(this));
+        addSubCommand("give", new XPBankGiveCommand(this));
+        addSubCommand("take", new XPBankTakeCommand(this));
         addSubCommand("balance", new XPBankBalanceCommand(this));
         addSubCommand("deposit", new XPBankDepositCommand(this));
         addSubCommand("withdraw", new XPBankWithdrawCommand(this));
         addSubCommand("transfer", new XPBankTransferCommand(this));
-        addSubCommand("set", new XPBankSetCommand(this));
-        addSubCommand("give", new XPBankGiveCommand(this));
-        addSubCommand("take", new XPBankTakeCommand(this));
     }
 
     @Override
@@ -62,7 +62,7 @@ public class XPBankCommand extends Command {
             return CommandResult.SUCCESS;
         }
 
-        protected String[] getReplacements(Player player) {
+        protected Object[] getReplacements(Player player) {
             long balance = _bank.getBalance(player);
             long balanceLevel = ExperienceUtil.pointToLevel((int) balance);
             long balanceLevelYield = balanceLevel - player.getLevel();
@@ -70,11 +70,11 @@ public class XPBankCommand extends Command {
 
             if(balanceLevelYield < 0) balanceLevelYield = 0;
 
-            return new String[]{
-                    "{BALANCE_POINTS}", String.format("%s", balance),
-                    "{BALANCE_LEVEL}", String.format("%s", balanceLevel),
-                    "{BALANCE_LEVEL_YIELD}", String.format("%s", balanceLevelYield),
-                    "{CURRENT_POINTS}", String.format("%s", currentPoints)
+            return new Object[]{
+                    "{BALANCE_POINTS}", balance,
+                    "{BALANCE_LEVEL}", balanceLevel,
+                    "{BALANCE_LEVEL_YIELD}", balanceLevelYield,
+                    "{CURRENT_POINTS}", currentPoints
             };
         }
     }
@@ -311,10 +311,10 @@ public class XPBankCommand extends Command {
         }
 
         protected void sendMessage(CommandSender receiver, String localizedMessage, long oldBalance, long newBalance, long delta, OfflinePlayer player) {
-            String[] replacements = new String[] {
-                    "{BALANCE_OLD}", String.format("%s", oldBalance),
-                    "{BALANCE_NEW}", String.format("%s", newBalance),
-                    "{BALANCE_DELTA}", String.format("%s", delta),
+            Object[] replacements = new Object[] {
+                    "{BALANCE_OLD}", oldBalance,
+                    "{BALANCE_NEW}", newBalance,
+                    "{BALANCE_DELTA}", delta,
                     "{PLAYER_NAME}", player.getName()
             };
 

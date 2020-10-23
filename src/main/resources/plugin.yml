@@ -13,13 +13,13 @@ commands:
   xpbank:
     usage: /xpbank
     description: Does the same as `/xp balalance`
-    permission: xpbankz.balance.view
+    permission: xpbank.balance.view
     aliases: [xp, xpb]
 
   xpbank balance:
     usage: /xpbank balance
     description: Shows a user their xp-bank balance balance, and current xp.
-    permission: xpbankz.balance.view
+    permission: xpbank.balance.view
     aliases: [balance]
 
   xpbank deposit:
@@ -27,7 +27,7 @@ commands:
     description: Deposits a specific amount of current xp to the users xp-bank balance.
     permission: xpbank.balance.deposit
     aliases: [deposit]
-    
+
   xpbank withdraw:
     usage: /xpbank withdraw <amount>
     description: Withdraws a specific amount of the users xp-bank balance to their current xp.

@@ -6,7 +6,7 @@
 
     <groupId>nl.tabuu</groupId>
     <artifactId>XPBankZ</artifactId>
-    <version>0.2.1</version>
+    <version>0.3.0</version>
     <description>A safe way to store xp points.</description>
 
     <build>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.15.2-R0.1-SNAPSHOT</version>
+            <version>1.16.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
