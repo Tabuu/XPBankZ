@@ -170,7 +170,7 @@ public class XPBankCommand extends Command {
 
             if(target.isOnline()) {
                 String message = "COMMAND_TRANSFER_RECEIVED";
-                sendMessage((Player) target, message, oldBalance, oldBalance + delta, delta, target);
+                sendMessage((Player) target, message, oldBalance, oldBalance + delta, delta, player);
             }
         }
 
